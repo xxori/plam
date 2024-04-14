@@ -2,7 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
-from scanner import Token
+from ptoken import Token
 from typing import TypeVar, Generic
 
 T = TypeVar("T")
@@ -10,6 +10,15 @@ T = TypeVar("T")
 class Expr(ABC):
     def accept(self, visitor: Visitor):
         pass
+
+@dataclass
+class Ternary(Expr):
+    cond: Expr
+    first: Expr
+    second: Expr
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitTernaryExpr(self)
 
 @dataclass
 class Binary(Expr):
@@ -43,6 +52,9 @@ class Unary(Expr):
             return visitor.visitUnaryExpr(self)
 
 class Visitor(ABC, Generic[T]):
+    def visitTernaryExpr(self, expr: Ternary) -> T:
+        pass
+        
     def visitBinaryExpr(self, expr: Binary) -> T:
         pass
         

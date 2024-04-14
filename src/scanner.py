@@ -79,6 +79,10 @@ class Scanner:
                 self.addToken(TokenType.PLUS)
             case ";":
                 self.addToken(TokenType.SEMICOLON)
+            case ":":
+                self.addToken(TokenType.COLON)
+            case "?":
+                self.addToken(TokenType.QMARK)
             case "*":
                 self.addToken(TokenType.STAR)
 
@@ -113,7 +117,7 @@ class Scanner:
                 elif self.isAlpha(c):
                     self.identifier()
                 else:
-                    self.plam.error(self.line, "Unexpected character.")
+                    self.plam.error(self.line, "Unexpected character '" + c + "'.")
 
     def match(self, expected: str) -> bool:
         if self.isAtEnd() or self.source[self.current] != expected:

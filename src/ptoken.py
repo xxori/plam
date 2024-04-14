@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class TokenType(Enum):
     EOF = 0
     LPAREN = 1
@@ -44,18 +45,22 @@ class TokenType(Enum):
     VAR = 37
     WHILE = 38
 
+    QMARK = 39
+    COLON = 40
+
+
 class Token:
     t: TokenType
     lexeme: str
     literal: object
     line: int
 
-    def __init__(self, t: TokenType,lexeme: str,literal: object,line: int):
+    def __init__(self, t: TokenType, lexeme: str, literal: object, line: int):
         self.t = t
         self.lexeme = lexeme
         self.object = object
         self.literal = literal
         self.line = line
-    
+
     def toString(self) -> str:
-        return str(self.t) + " " +  self.lexeme + " " + self.literal
+        return str(self.t) + " " + self.lexeme + " " + self.literal

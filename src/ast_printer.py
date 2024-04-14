@@ -1,4 +1,4 @@
-from expr import Binary, Grouping, Literal, Unary, Visitor, Expr
+from expr import Binary, Grouping, Literal, Ternary, Unary, Visitor, Expr
 
 
 class AstPrinter(Visitor[str]):
@@ -12,6 +12,9 @@ class AstPrinter(Visitor[str]):
             strbuilder.append(expr.accept(self))
         strbuilder.append(")")
         return "".join(strbuilder)
+
+    def visitTernaryExpr(self, expr: Ternary) -> str:
+        return self.parenthesize(expr.cond.accept(self)+"?",expr.first, expr.second)
 
     def visitBinaryExpr(self, expr: Binary) -> str:
         return self.parenthesize(expr.operator.lexeme, expr.left, expr.right)
