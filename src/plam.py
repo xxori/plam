@@ -49,7 +49,7 @@ class Plam:
                     try:
                         print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
                     except PlamRuntimeError as e:
-                        print("error")
+                        self.runtimeError(e)
                 else:
                     self.interpreter.interpret([s])
         else:
