@@ -3,7 +3,7 @@ from interpreter import PlamRuntimeError
 from ptoken import Token
 from typing import Optional
 
-
+UNINITIALIZED = object()
 class Environment:
     enclosing: Optional[Environment]
     _values: dict[str, object]
@@ -17,6 +17,8 @@ class Environment:
 
     def get(self, name: Token) -> object:
         if name.lexeme in self._values.keys():
+            if self._values[name.lexeme] is UNINITIALIZED:
+                raise PlamRuntimeError(name, f"Attempted to access uninitialized variable '{name.lexeme}'.")
             return self._values[name.lexeme]
 
         if self.enclosing != None:

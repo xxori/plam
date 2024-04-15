@@ -2,7 +2,7 @@ import sys
 import os
 
 
-def defineAst(outdir: str, basename: str, types: list[str]):
+def defineAst(outdir: str, basename: str, types: list[str], additional = ""):
     path = os.path.join(outdir, basename.lower() + ".py")
     with open(path, "w+") as f:
         f.write(
@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from abc import ABC
 from ptoken import Token
 from typing import TypeVar, Generic, Optional
+{additional}
 
 T = TypeVar("T")
 
@@ -72,14 +73,16 @@ if __name__ == "__main__":
             "Binary     : Expr left, Token operator, Expr right",
             "Grouping   : Expr expression",
             "Literal    : object value",
+            "Logical    : Expr left, Token operator, Expr right",
             "Unary      : Token operator, Expr right",
             "Variable   : Token name"
         ],
     )
     defineAst(
         outdir, "Stmt", ["Expression : Expr expression",
+                         "If         : Expr cond, Stmt thenBranch, Optional[Stmt] elseBranch",
                          "Print      : Expr expression",
                          "Var        : Token name, Optional[Expr] initializer",
                          "Block      : list[Stmt] statements"
-                         ]
+                         ], "from expr import Expr"
     )

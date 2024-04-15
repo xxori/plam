@@ -45,7 +45,10 @@ class Plam:
             if len(exprs) > 0:
                 print("\nEvaluates to:")
             for s in exprs:
-                print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
+                try:
+                    print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
+                except PlamRuntimeError as e:
+                    print("error")
 
     def error(self, line: int, message: str):
         self.report(line, "", message)

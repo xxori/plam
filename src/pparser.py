@@ -1,8 +1,9 @@
 from __future__ import annotations
 from ptoken import TokenType, Token
-from expr import Expr, Binary, Unary, Literal, Grouping, Ternary, Variable, Assignment
+from expr import Expr, Binary, Unary, Literal, Grouping, Ternary, Logical, Variable, Assignment
 from typing import Callable, Self, Optional, cast, Any
-from stmt import Stmt, Print, Expression, Var, Block
+from stmt import Stmt, Print, Expression, Var, Block, If
+
 
 class ParseError(Exception):
     pass
@@ -84,17 +85,19 @@ class Parser:
         except ParseError:
             self.synchronise()
             return None
-    
+
     def varDeclaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name.")
 
         initializer: Optional[Expr] = None
         if self.match(TokenType.EQUAL):
             initializer = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+        self.consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.")
         return Var(name, initializer)
 
     def statement(self) -> Stmt:
+        if self.match(TokenType.IF):
+            return self.ifStatement()
         if self.match(TokenType.PRINT):
             return self.printStatement()
         if self.match(TokenType.LBRACE):
@@ -105,10 +108,22 @@ class Parser:
         statements: list[Stmt] = []
         while not self.check(TokenType.RBRACE) and not self.isAtEnd():
             statements.append(cast(Stmt, self.declaration()))
-        
+
         self.consume(TokenType.RBRACE, "Expected '}' after block.")
         return statements
-    
+
+    def ifStatement(self) -> Stmt:
+        self.consume(TokenType.LPAREN, "Expected '(' after 'if'.")
+        expr = self.expression()
+        self.consume(TokenType.RPAREN, "Expected ')' after if condition.")
+
+        thenBranch = self.statement()
+        elseBranch = None
+        if self.match(TokenType.ELSE):
+            elseBranch = self.statement()
+
+        return If(expr, thenBranch, elseBranch)
+
     def printStatement(self) -> Stmt:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
@@ -121,9 +136,9 @@ class Parser:
 
     def expression(self) -> Expr:
         return self.assignment()
-    
+
     def assignment(self) -> Expr:
-        expr = self.equality()
+        expr = self.logic_or()
 
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
@@ -132,8 +147,28 @@ class Parser:
             if isinstance(expr, Variable):
                 name = expr.name
                 return Assignment(name, value)
-            
+
             self.error(equals, "Invalid assignment target.")
+
+        return expr
+    
+    def logic_or(self) -> Expr:
+        expr = self.logic_and()
+
+        while self.match(TokenType.OR):
+            op = self.previous()
+            right = self.logic_and()
+            expr = Logical(expr, op, right)
+        
+        return expr
+    
+    def logic_and(self) -> Expr:
+        expr = self.equality()
+
+        while self.match(TokenType.AND):
+            op = self.previous()
+            right = self.equality()
+            expr = Logical(expr, op, right)
         
         return expr
 
@@ -236,5 +271,5 @@ class Parser:
     def parse(self) -> list[Stmt]:
         stmts: list[Stmt] = []
         while not self.isAtEnd():
-            stmts.append(cast(Stmt,self.declaration()))
+            stmts.append(cast(Stmt, self.declaration()))
         return stmts

@@ -5,6 +5,7 @@ from abc import ABC
 from ptoken import Token
 from typing import TypeVar, Generic, Optional
 
+
 T = TypeVar("T")
 
 class Expr(ABC):
@@ -51,6 +52,15 @@ class Literal(Expr):
             return visitor.visitLiteralExpr(self)
 
 @dataclass
+class Logical(Expr):
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitLogicalExpr(self)
+
+@dataclass
 class Unary(Expr):
     operator: Token
     right: Expr
@@ -75,6 +85,8 @@ class Visitor(ABC, Generic[T]):
     def visitGroupingExpr(self, expr: Grouping) -> T: ...
         
     def visitLiteralExpr(self, expr: Literal) -> T: ...
+        
+    def visitLogicalExpr(self, expr: Logical) -> T: ...
         
     def visitUnaryExpr(self, expr: Unary) -> T: ...
         

@@ -2,9 +2,9 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
-from expr import Expr
 from ptoken import Token
 from typing import TypeVar, Generic, Optional
+from expr import Expr
 
 T = TypeVar("T")
 
@@ -17,6 +17,15 @@ class Expression(Stmt):
 
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitExpressionStmt(self)
+
+@dataclass
+class If(Stmt):
+    cond: Expr
+    thenBranch: Stmt
+    elseBranch: Optional[Stmt]
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitIfStmt(self)
 
 @dataclass
 class Print(Stmt):
@@ -42,6 +51,8 @@ class Block(Stmt):
 
 class Visitor(ABC, Generic[T]):
     def visitExpressionStmt(self, stmt: Expression) -> T: ...
+        
+    def visitIfStmt(self, stmt: If) -> T: ...
         
     def visitPrintStmt(self, stmt: Print) -> T: ...
         
