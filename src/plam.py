@@ -3,7 +3,7 @@
 import sys
 from scanner import Scanner
 from ptoken import Token, TokenType
-from stmt import Stmt
+from stmt import Stmt, Expression
 from pparser import Parser
 from ast_printer import AstPrinter
 from interpreter import Interpreter, PlamRuntimeError
@@ -26,7 +26,7 @@ class Plam:
         else:
             self.runPrompt()
 
-    def run(self, source: str):
+    def run(self, source: str, repl: bool = False):
         scanner = Scanner(source, self)
         toks: list[Token] = scanner.scanTokens()
         # for t in toks:
@@ -38,7 +38,14 @@ class Plam:
 
         if Plam.hadError: return
 
+
         self.interpreter.interpret(statements)
+        if repl:
+            exprs = [x for x in statements if isinstance(x, Expression)]
+            if len(exprs) > 0:
+                print("\nEvaluates to:")
+            for s in exprs:
+                print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
 
     def error(self, line: int, message: str):
         self.report(line, "", message)
@@ -74,7 +81,7 @@ class Plam:
                 break
             except KeyboardInterrupt:
                 break
-            self.run(line)
+            self.run(line, True)
             Plam.hadError = False
 
 
