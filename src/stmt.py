@@ -9,7 +9,7 @@ from typing import TypeVar, Generic, Optional
 T = TypeVar("T")
 
 class Stmt(ABC):
-    def accept(self, visitor: Visitor): ...
+    def accept(self, visitor: Visitor[T]) -> T: ...
 
 @dataclass
 class Expression(Stmt):
@@ -33,10 +33,19 @@ class Var(Stmt):
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitVarStmt(self)
 
+@dataclass
+class Block(Stmt):
+    statements: list[Stmt]
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitBlockStmt(self)
+
 class Visitor(ABC, Generic[T]):
     def visitExpressionStmt(self, stmt: Expression) -> T: ...
         
     def visitPrintStmt(self, stmt: Print) -> T: ...
         
     def visitVarStmt(self, stmt: Var) -> T: ...
+        
+    def visitBlockStmt(self, stmt: Block) -> T: ...
         

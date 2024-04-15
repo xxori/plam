@@ -1,6 +1,6 @@
 from expr import Binary, Expr, Grouping, Literal, Ternary, Unary, Variable, Assignment, Visitor as EVisitor
 from ptoken import TokenType, Token
-from stmt import Stmt, Expression, Print, Var, Visitor as SVisitor
+from stmt import Stmt, Expression, Print, Var, Block, Visitor as SVisitor
 from typing import cast, Any
 class PlamRuntimeError(RuntimeError):
     token: Token
@@ -71,6 +71,18 @@ class Interpreter(EVisitor[object], SVisitor[None]):
             value = self.evaluate(stmt.initializer)
         
         self.environment.define(stmt.name.lexeme, value)
+    
+    def visitBlockStmt(self, stmt: Block) -> None:
+        self.executeBlock(stmt.statements, Environment(self.environment))
+    
+    def executeBlock(self, stmts: list[Stmt], env: Environment):
+        previous = self.environment
+        try:
+            self.environment = env
+            for stmt in stmts:
+                self.execute(stmt)
+        finally:
+            self.environment = previous
     
     def visitVariableExpr(self, expr: Variable) -> object:
         return self.environment.get(expr.name)

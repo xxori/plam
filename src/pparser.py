@@ -2,7 +2,7 @@ from __future__ import annotations
 from ptoken import TokenType, Token
 from expr import Expr, Binary, Unary, Literal, Grouping, Ternary, Variable, Assignment
 from typing import Callable, Self, Optional, cast, Any
-from stmt import Stmt, Print, Expression, Var
+from stmt import Stmt, Print, Expression, Var, Block
 
 class ParseError(Exception):
     pass
@@ -81,7 +81,7 @@ class Parser:
             if self.match(TokenType.VAR):
                 return self.varDeclaration()
             return self.statement()
-        except ParseError as e:
+        except ParseError:
             self.synchronise()
             return None
     
@@ -97,8 +97,18 @@ class Parser:
     def statement(self) -> Stmt:
         if self.match(TokenType.PRINT):
             return self.printStatement()
+        if self.match(TokenType.LBRACE):
+            return Block(self.block())
         return self.expressionStatement()
 
+    def block(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+        while not self.check(TokenType.RBRACE) and not self.isAtEnd():
+            statements.append(cast(Stmt, self.declaration()))
+        
+        self.consume(TokenType.RBRACE, "Expected '}' after block.")
+        return statements
+    
     def printStatement(self) -> Stmt:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
