@@ -77,12 +77,13 @@ class Plam:
         while True:
             try:
                 line = input("plam> ")
+                self.run(line, True)
+                Plam.hadError = False
             except EOFError:
                 break
             except KeyboardInterrupt:
-                break
-            self.run(line, True)
-            Plam.hadError = False
+                print()
+                continue
 
 
 if __name__ == "__main__":
