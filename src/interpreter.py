@@ -63,10 +63,10 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         stmt.accept(self)
 
     def isTruthy(self, obj: object) -> bool:
-        if object == None:
+        if obj == None:
             return False
         if isinstance(obj, bool):
-            return bool(obj)
+            return obj
         return True
 
     def isEqual(self, left: object, right: object) -> bool:
