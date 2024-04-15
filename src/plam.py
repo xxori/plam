@@ -14,7 +14,7 @@ class Plam:
     interpreter: Interpreter
 
     def __init__(self):
-        Plam.interpreter = Interpreter(Plam)
+        Plam.interpreter = Interpreter(self)
 
     def main(self):
         args = sys.argv[1::]
@@ -27,33 +27,33 @@ class Plam:
             self.runPrompt()
 
     def run(self, source: str):
-        scanner = Scanner(source, Plam)
+        scanner = Scanner(source, self)
         toks: list[Token] = scanner.scanTokens()
         # for t in toks:
         #     print(f"({t.t} {t.lexeme})", end=" ")
         # print()
         # print()
-        parser = Parser(toks, Plam)
+        parser = Parser(toks, self)
         statements: list[Stmt] = parser.parse()
 
         if Plam.hadError: return
 
         self.interpreter.interpret(statements)
 
-    def error(line: int, message: str):
-        Plam.report(line, "", message)
+    def error(self, line: int, message: str):
+        self.report(line, "", message)
     
-    def runtimeError(e: PlamRuntimeError):
+    def runtimeError(self, e: PlamRuntimeError):
         print(f"{e}\n[line {e.token.line}]",file=sys.stderr)
         Plam.hadRuntimeError = True
 
-    def tok_error(token: Token, message: str):
+    def tok_error(self, token: Token, message: str):
         if token.t == TokenType.EOF:
-            Plam.report(token.line, " at end", message)
+            self.report(token.line, " at end", message)
         else:
-            Plam.report(token.line, " at '" + token.lexeme + "'", message)
+            self.report(token.line, " at '" + token.lexeme + "'", message)
 
-    def report(line: int, where: str, message: str):
+    def report(self, line: int, where: str, message: str):
         print("[line " + str(line) + "] Error" + where + ": " + message, file=sys.stderr)
         Plam.hadError = True
 

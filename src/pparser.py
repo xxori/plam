@@ -1,9 +1,8 @@
 from __future__ import annotations
 from ptoken import TokenType, Token
 from expr import Expr, Binary, Unary, Literal, Grouping, Ternary, Variable, Assignment
-from typing import Callable, Self
+from typing import Callable, Self, Optional, cast, Any
 from stmt import Stmt, Print, Expression, Var
-
 
 class ParseError(Exception):
     pass
@@ -12,7 +11,7 @@ class ParseError(Exception):
 class Parser:
     tokens: list[Token]
     current: int
-    plam: object
+    plam: Any
 
     def __init__(self, tokens: list[Token], plam):
         self.current = 0
@@ -77,7 +76,7 @@ class Parser:
 
             self.advance()
 
-    def declaration(self) -> Stmt:
+    def declaration(self) -> Optional[Stmt]:
         try:
             if self.match(TokenType.VAR):
                 return self.varDeclaration()
@@ -89,7 +88,7 @@ class Parser:
     def varDeclaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER, "Expected variable name.")
 
-        initializer: Expr = None
+        initializer: Optional[Expr] = None
         if self.match(TokenType.EQUAL):
             initializer = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.")
@@ -227,5 +226,5 @@ class Parser:
     def parse(self) -> list[Stmt]:
         stmts: list[Stmt] = []
         while not self.isAtEnd():
-            stmts.append(self.declaration())
+            stmts.append(cast(Stmt,self.declaration()))
         return stmts

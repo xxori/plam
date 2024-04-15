@@ -11,13 +11,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
 from ptoken import Token
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Optional
 
 T = TypeVar("T")
 
 class {basename}(ABC):
-    def accept(self, visitor: Visitor):
-        pass
+    def accept(self, visitor: Visitor): ...
 """
         )
         for t in types:
@@ -52,8 +51,7 @@ class {classname}({basename}):
 def defineVisitor(f, basename: str, classname: str):
     f.write(
         f"""\
-    def visit{classname}{basename}(self, {basename.lower()}: {classname}) -> T:
-        pass
+    def visit{classname}{basename}(self, {basename.lower()}: {classname}) -> T: ...
         
 """
     )
@@ -81,6 +79,6 @@ if __name__ == "__main__":
     defineAst(
         outdir, "Stmt", ["Expression : Expr expression",
                          "Print      : Expr expression",
-                         "Var        : Token name, Expr initializer"
+                         "Var        : Token name, Optional[Expr] initializer"
                          ]
     )

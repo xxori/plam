@@ -63,4 +63,4 @@ class Token:
         self.line = line
 
     def toString(self) -> str:
-        return str(self.t) + " " + self.lexeme + " " + self.literal
+        return str(self.t) + " " + self.lexeme + " " + str(self.literal)

@@ -1,6 +1,7 @@
 from expr import Binary, Expr, Grouping, Literal, Ternary, Unary, Variable, Assignment, Visitor as EVisitor
 from ptoken import TokenType, Token
 from stmt import Stmt, Expression, Print, Var, Visitor as SVisitor
+from typing import cast, Any
 class PlamRuntimeError(RuntimeError):
     token: Token
     def __init__(self, token: Token, message: str):
@@ -10,7 +11,7 @@ class PlamRuntimeError(RuntimeError):
 from environment import Environment
 
 class Interpreter(EVisitor[object], SVisitor[None]):
-    plam: object
+    plam: Any
     environment: Environment = Environment()
 
     def __init__(self, plam):
@@ -86,7 +87,7 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         match expr.operator.t:
             case TokenType.MINUS:
                 self.checkNumberOperands(expr.operator, right)
-                return -float(right)
+                return -cast(float, right)
             case TokenType.BANG:
                 return not self.isTruthy(right)
         
@@ -112,15 +113,15 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         match expr.operator.t:
             case TokenType.MINUS:
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) - float(right)
+                return cast(float, left) - cast(float, right)
             case TokenType.SLASH:
                 self.checkNumberOperands(expr.operator, left, right)
-                if float(right) == 0.0:
+                if cast(float, right) == 0.0:
                     raise PlamRuntimeError(expr.operator, "Can't divide by zero.")
-                return float(left) / float(right)
+                return cast(float, left) / cast(float, right)
             case TokenType.STAR:
                 if isinstance(left, str) and isinstance(right, float):
-                    if float(right).is_integer():
+                    if cast(float, right).is_integer():
                         return str(left) * int(right)
                     else:
                         raise PlamRuntimeError(expr.operator, "Can't multiply string by non-integer amount.")
@@ -130,7 +131,7 @@ class Interpreter(EVisitor[object], SVisitor[None]):
                     else:
                         raise PlamRuntimeError(expr.operator, "Can't multiply string by non-integer amount.")
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) * float(right)
+                return cast(float, left) * cast(float, right)
             case TokenType.PLUS:
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
@@ -139,16 +140,16 @@ class Interpreter(EVisitor[object], SVisitor[None]):
                 raise PlamRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
             case TokenType.GREATER:
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) > float(right)
+                return cast(float, left) > cast(float, right)
             case TokenType.GREATEREQ:
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) >= float(right)
+                return cast(float, left) >= cast(float, right)
             case TokenType.LESS:
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) < float(right)
+                return cast(float, left) < cast(float, right)
             case TokenType.LESSEQ:
                 self.checkNumberOperands(expr.operator, left, right)
-                return float(left) <= float(right)
+                return cast(float, left) <= cast(float, right)
             case TokenType.BANGEQ:
                 return not self.isEqual(left, right)
             case TokenType.EQUALEQ:

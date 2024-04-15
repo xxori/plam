@@ -3,13 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
 from ptoken import Token
-from typing import TypeVar, Generic
+from typing import TypeVar, Generic, Optional
 
 T = TypeVar("T")
 
 class Expr(ABC):
-    def accept(self, visitor: Visitor):
-        pass
+    def accept(self, visitor: Visitor[T]) -> T: ...
 
 @dataclass
 class Assignment(Expr):
@@ -67,24 +66,17 @@ class Variable(Expr):
             return visitor.visitVariableExpr(self)
 
 class Visitor(ABC, Generic[T]):
-    def visitAssignmentExpr(self, expr: Assignment) -> T:
-        pass
+    def visitAssignmentExpr(self, expr: Assignment) -> T: ...
         
-    def visitTernaryExpr(self, expr: Ternary) -> T:
-        pass
+    def visitTernaryExpr(self, expr: Ternary) -> T: ...
         
-    def visitBinaryExpr(self, expr: Binary) -> T:
-        pass
+    def visitBinaryExpr(self, expr: Binary) -> T: ...
         
-    def visitGroupingExpr(self, expr: Grouping) -> T:
-        pass
+    def visitGroupingExpr(self, expr: Grouping) -> T: ...
         
-    def visitLiteralExpr(self, expr: Literal) -> T:
-        pass
+    def visitLiteralExpr(self, expr: Literal) -> T: ...
         
-    def visitUnaryExpr(self, expr: Unary) -> T:
-        pass
+    def visitUnaryExpr(self, expr: Unary) -> T: ...
         
-    def visitVariableExpr(self, expr: Variable) -> T:
-        pass
+    def visitVariableExpr(self, expr: Variable) -> T: ...
         

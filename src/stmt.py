@@ -2,15 +2,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
-from ptoken import Token
 from expr import Expr
-from typing import TypeVar, Generic
+from ptoken import Token
+from typing import TypeVar, Generic, Optional
 
 T = TypeVar("T")
 
 class Stmt(ABC):
-    def accept(self, visitor: Visitor):
-        pass
+    def accept(self, visitor: Visitor): ...
 
 @dataclass
 class Expression(Stmt):
@@ -29,18 +28,15 @@ class Print(Stmt):
 @dataclass
 class Var(Stmt):
     name: Token
-    initializer: Expr
+    initializer: Optional[Expr]
 
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitVarStmt(self)
 
 class Visitor(ABC, Generic[T]):
-    def visitExpressionStmt(self, stmt: Expression) -> T:
-        pass
+    def visitExpressionStmt(self, stmt: Expression) -> T: ...
         
-    def visitPrintStmt(self, stmt: Print) -> T:
-        pass
+    def visitPrintStmt(self, stmt: Print) -> T: ...
         
-    def visitVarStmt(self, stmt: Var) -> T:
-        pass
+    def visitVarStmt(self, stmt: Var) -> T: ...
         

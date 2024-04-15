@@ -1,10 +1,11 @@
+from __future__ import annotations
 from ptoken import Token, TokenType
-
+from typing import Any
 
 class Scanner:
     source: str
     tokens: list[Token]
-    plam: object  # Super object ref
+    plam: Any  # Super object ref
 
     start: int
     current: int
