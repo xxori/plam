@@ -162,7 +162,9 @@ class Parser:
         body = self.statement()
         if condition == None:
             condition = Literal(True)
-        body = While(condition, body, Expression(increment) if increment != None else None)
+        body = While(
+            condition, body, Expression(increment) if increment != None else None
+        )
         if initializer != None:
             body = Block([initializer, body])
 
@@ -204,15 +206,69 @@ class Parser:
     def assignment(self) -> Expr:
         expr = self.ternary()
 
-        if self.match(TokenType.EQUAL):
+        if self.match(
+            TokenType.EQUAL,
+            TokenType.PLUSEQ,
+            TokenType.MINUSEQ,
+            TokenType.STAREQ,
+            TokenType.SLASHEQ,
+        ):
             equals: Token = self.previous()
             value = self.assignment()
 
             if isinstance(expr, Variable):
                 name = expr.name
-                return Assignment(name, value)
+                match equals.t:
+                    case TokenType.EQUAL:
+                        return Assignment(name, value)
+                    case TokenType.PLUSEQ:
+                        return Assignment(
+                            name,
+                            Binary(
+                                expr,
+                                Token(TokenType.PLUS, "+=", None, name.line),
+                                value,
+                            ),
+                        )
+                    case TokenType.MINUSEQ:
+                        return Assignment(
+                            name,
+                            Binary(
+                                expr,
+                                Token(TokenType.MINUS, "-=", None, name.line),
+                                value,
+                            ),
+                        )
+                    case TokenType.STAREQ:
+                        return Assignment(
+                            name,
+                            Binary(
+                                expr,
+                                Token(TokenType.STAR, "*=", None, name.line),
+                                value,
+                            ),
+                        )
+                    case TokenType.SLASHEQ:
+                        return Assignment(
+                            name,
+                            Binary(
+                                expr,
+                                Token(TokenType.SLASH, "/=", None, name.line),
+                                value,
+                            ),
+                        )
 
             self.error(equals, "Invalid assignment target.")
+
+        if self.match(TokenType.PLUSEQ):
+            peq: Token = self.previous()
+            value = self.assignment()
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assignment(
+                    name,
+                    Binary(expr, Token(TokenType.PLUS, "+=", None, name.line), value),
+                )
 
         return expr
 
@@ -245,7 +301,6 @@ class Parser:
             expr = Logical(expr, op, right)
 
         return expr
-
 
     def _create_left_assoc_binary(
         self, types: list[TokenType], expr: Callable[[Self], Expr]
@@ -313,7 +368,6 @@ class Parser:
             op = self.previous()
             right = self.unary()
             return Unary(op, right)
-
 
         return self.primary()
 
