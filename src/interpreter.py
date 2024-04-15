@@ -11,7 +11,7 @@ from expr import (
     Visitor as EVisitor,
 )
 from ptoken import TokenType, Token
-from stmt import Stmt, Expression, Print, Var, Block, If, Visitor as SVisitor
+from stmt import Stmt, Expression, While, Print, Break, Continue, Var, Block, If, Visitor as SVisitor
 from typing import cast, Any
 
 
@@ -25,6 +25,13 @@ class PlamRuntimeError(RuntimeError):
 
 from environment import Environment, UNINITIALIZED
 
+class BreakLoop(Exception):
+    def __init__(self, tok: Token):
+        self.token = tok
+
+class ContinueLoop(Exception):
+    def __init__(self, tok: Token):
+        self.token = tok
 
 class Interpreter(EVisitor[object], SVisitor[None]):
     plam: Any
@@ -39,6 +46,11 @@ class Interpreter(EVisitor[object], SVisitor[None]):
                 self.execute(statement)
         except PlamRuntimeError as e:
             self.plam.runtimeError(e)
+        except BreakLoop as e:
+            self.plam.runetimeError(PlamRuntimeError(e.token, "'break' used outside loop."))
+        except ContinueLoop as e:
+            self.plam.runetimeError(PlamRuntimeError(e.token, "'continue' used outside loop."))
+        
 
     def stringify(self, obj: object) -> str:
         if obj == None:
@@ -87,10 +99,30 @@ class Interpreter(EVisitor[object], SVisitor[None]):
 
     def visitExpressionStmt(self, stmt: Expression) -> None:
         self.evaluate(stmt.expression)
+    
+    def visitBreakStmt(self, stmt: Break) -> None:
+        raise BreakLoop(stmt.tok)
+    
+    def visitContinueStmt(self, stmt: Continue) -> None:
+        raise ContinueLoop(stmt.tok)
 
     def visitPrintStmt(self, stmt: Print) -> None:
         value: object = self.evaluate(stmt.expression)
         print(self.stringify(value))
+
+    def visitWhileStmt(self, stmt: While) -> None:
+        try:
+            while self.isTruthy(self.evaluate(stmt.cond)):
+                try:
+                    self.execute(stmt.body)
+                except ContinueLoop:
+                    pass
+                finally:
+                    if stmt.post != None:
+                        self.execute(stmt.post)
+        except BreakLoop:
+            pass
+ 
 
     def visitVarStmt(self, stmt: Var) -> None:
         value = UNINITIALIZED
@@ -120,7 +152,7 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         else:
             if not self.isTruthy(left):
                 return left
-        
+
         return self.evaluate(expr.right)
 
     def visitVariableExpr(self, expr: Variable) -> object:

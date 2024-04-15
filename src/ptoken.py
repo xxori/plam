@@ -45,8 +45,18 @@ class TokenType(Enum):
     VAR = 37
     WHILE = 38
 
-    # QMARK = 39
-    # COLON = 40
+    QMARK = 39
+    COLON = 40
+
+    BREAK = 41
+    CONTINUE = 42
+
+    PLUSPLUS = 43
+    MINUSMINUS = 44
+    PLUSEQ  = 45
+    MINUSEQ = 46
+    STAREQ = 47
+    SLASHEQ = 48
 
 
 class Token:

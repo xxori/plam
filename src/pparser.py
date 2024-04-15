@@ -1,11 +1,25 @@
 from __future__ import annotations
 from ptoken import TokenType, Token
-from expr import Expr, Binary, Unary, Literal, Grouping, Ternary, Logical, Variable, Assignment
+from expr import (
+    Expr,
+    Binary,
+    Unary,
+    Literal,
+    Grouping,
+    Ternary,
+    Logical,
+    Variable,
+    Assignment,
+)
 from typing import Callable, Self, Optional, cast, Any
-from stmt import Stmt, Print, Expression, Var, Block, If
+from stmt import Stmt, Print, Expression, Var, Block, If, While, Break, Continue
 
 
 class ParseError(Exception):
+    pass
+
+
+class BreakOutsideLoop(Exception):
     pass
 
 
@@ -96,12 +110,24 @@ class Parser:
         return Var(name, initializer)
 
     def statement(self) -> Stmt:
+        if self.match(TokenType.FOR):
+            return self.forStatement()
         if self.match(TokenType.IF):
             return self.ifStatement()
         if self.match(TokenType.PRINT):
             return self.printStatement()
+        if self.match(TokenType.WHILE):
+            return self.whileStatement()
         if self.match(TokenType.LBRACE):
             return Block(self.block())
+
+        if self.match(TokenType.BREAK):
+            self.consume(TokenType.SEMICOLON, "Expected ';' after 'break'.")
+            return Break(self.previous())
+        if self.match(TokenType.CONTINUE):
+            self.consume(TokenType.SEMICOLON, "Expected ';' after 'continue'.")
+            return Continue(self.previous())
+
         return self.expressionStatement()
 
     def block(self) -> list[Stmt]:
@@ -111,6 +137,36 @@ class Parser:
 
         self.consume(TokenType.RBRACE, "Expected '}' after block.")
         return statements
+
+    def forStatement(self) -> Stmt:
+        self.consume(TokenType.LPAREN, "Expected '(' after 'for'.")
+
+        initializer: Optional[Stmt]
+        if self.match(TokenType.SEMICOLON):
+            initializer = None
+        elif self.match(TokenType.VAR):
+            initializer = self.varDeclaration()
+        else:
+            initializer = self.expressionStatement()
+
+        condition: Optional[Expr] = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after loop condition.")
+
+        increment: Optional[Expr] = None
+        if not self.check(TokenType.SEMICOLON):
+            increment = self.expression()
+        self.consume(TokenType.RPAREN, "Expected ')' after for clauses.")
+
+        body = self.statement()
+        if condition == None:
+            condition = Literal(True)
+        body = While(condition, body, Expression(increment) if increment != None else None)
+        if initializer != None:
+            body = Block([initializer, body])
+
+        return body
 
     def ifStatement(self) -> Stmt:
         self.consume(TokenType.LPAREN, "Expected '(' after 'if'.")
@@ -129,6 +185,14 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
         return Print(value)
 
+    def whileStatement(self) -> Stmt:
+        self.consume(TokenType.LPAREN, "Expected '(' after 'while'.")
+        cond = self.expression()
+        self.consume(TokenType.RPAREN, "Expected ')' after while condition.")
+        body = self.statement()
+
+        return While(cond, body)
+
     def expressionStatement(self) -> Stmt:
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
@@ -138,7 +202,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> Expr:
-        expr = self.logic_or()
+        expr = self.ternary()
 
         if self.match(TokenType.EQUAL):
             equals: Token = self.previous()
@@ -151,7 +215,17 @@ class Parser:
             self.error(equals, "Invalid assignment target.")
 
         return expr
-    
+
+    def ternary(self) -> Expr:
+        expr = self.logic_or()
+        if self.match(TokenType.QMARK):
+            first = self.ternary()
+            self.consume(TokenType.COLON, "Expected ':' after '?'")
+            second = self.ternary()
+            expr = Ternary(expr, first, second)
+
+        return expr
+
     def logic_or(self) -> Expr:
         expr = self.logic_and()
 
@@ -159,9 +233,9 @@ class Parser:
             op = self.previous()
             right = self.logic_and()
             expr = Logical(expr, op, right)
-        
+
         return expr
-    
+
     def logic_and(self) -> Expr:
         expr = self.equality()
 
@@ -169,20 +243,9 @@ class Parser:
             op = self.previous()
             right = self.equality()
             expr = Logical(expr, op, right)
-        
+
         return expr
 
-    # def ternary(self) -> Expr:
-    #     expr = self.equality()
-    #     if self.match(TokenType.QMARK):
-    #         first = self.equality()
-    #         self.consume(TokenType.COLON, "Expected ':' after '?'")
-    #         second = self.equality()
-    #         expr = Ternary(expr, first, second)
-    #     if self.match(TokenType.COLON):
-    #         raise self.error(self.peek(), "Unexpected ':'.")
-
-    #     return expr
 
     def _create_left_assoc_binary(
         self, types: list[TokenType], expr: Callable[[Self], Expr]
@@ -201,31 +264,11 @@ class Parser:
             [TokenType.BANGEQ, TokenType.EQUALEQ], Parser.comparison
         )
 
-    # def equality(self) -> Expr:
-    #     expr = self.comparison()
-
-    #     while self.match(TokenType.BANGEQ, TokenType.EQUALEQ):
-    #         op = self.previous()
-    #         right = self.comparison()
-    #         expr = Binary(expr, op, right)
-
-    #     return expr
-
     def comparison(self) -> Expr:
         return self._create_left_assoc_binary(
             [TokenType.GREATER, TokenType.GREATEREQ, TokenType.LESS, TokenType.LESSEQ],
             Parser.term,
         )
-
-    # def comparison(self) -> Expr:
-    #     expr = self.term()
-
-    #     while self.match(TokenType.GREATER, TokenType.GREATEREQ, TokenType.LESS, TokenType.LESSEQ):
-    #         op = self.previous()
-    #         right = self.term()
-    #         expr = Binary(expr, op, right)
-
-    #     return expr
 
     def term(self) -> Expr:
         return self._create_left_assoc_binary(
@@ -240,10 +283,37 @@ class Parser:
         )
 
     def unary(self) -> Expr:
-        if self.match(TokenType.BANG, TokenType.MINUS):
+        if self.match(TokenType.MINUSMINUS):
+            if self.match(TokenType.IDENTIFIER):
+                return Assignment(
+                    self.previous(),
+                    Binary(
+                        Variable(self.previous()),
+                        Token(TokenType.MINUS, "-", None, self.previous().line),
+                        Literal(1.0),
+                    ),
+                )
+            else:
+                raise self.error(self.peek(), "Expected identified after '--'.")
+
+        elif self.match(TokenType.PLUSPLUS):
+            if self.match(TokenType.IDENTIFIER):
+                return Assignment(
+                    self.previous(),
+                    Binary(
+                        Variable(self.previous()),
+                        Token(TokenType.PLUS, "+", None, self.previous().line),
+                        Literal(1.0),
+                    ),
+                )
+            else:
+                raise self.error(self.peek(), "Expected identified after '++'.")
+
+        elif self.match(TokenType.BANG, TokenType.MINUS):
             op = self.previous()
             right = self.unary()
             return Unary(op, right)
+
 
         return self.primary()
 

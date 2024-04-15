@@ -42,12 +42,39 @@ class Var(Stmt):
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitVarStmt(self)
 
+class While(Stmt):
+    cond: Expr
+    body: Stmt
+    post: Optional[Stmt]
+
+    def __init__(self, cond: Expr, body: Stmt, post: Optional[Stmt] = None):
+          self.cond = cond
+          self.body = body
+          self.post = post
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitWhileStmt(self)
+
 @dataclass
 class Block(Stmt):
     statements: list[Stmt]
 
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitBlockStmt(self)
+
+@dataclass
+class Break(Stmt):
+    tok: Token
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitBreakStmt(self)
+
+@dataclass
+class Continue(Stmt):
+    tok: Token
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitContinueStmt(self)
 
 class Visitor(ABC, Generic[T]):
     def visitExpressionStmt(self, stmt: Expression) -> T: ...
@@ -58,5 +85,11 @@ class Visitor(ABC, Generic[T]):
         
     def visitVarStmt(self, stmt: Var) -> T: ...
         
+    def visitWhileStmt(self, stmt: While) -> T: ...
+        
     def visitBlockStmt(self, stmt: Block) -> T: ...
+        
+    def visitBreakStmt(self, stmt: Break) -> T: ...
+        
+    def visitContinueStmt(self, stmt: Continue) -> T: ...
         

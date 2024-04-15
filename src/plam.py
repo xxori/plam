@@ -38,17 +38,22 @@ class Plam:
 
         if Plam.hadError: return
 
+        # for stmt in statements:
+        #     if isinstance(stmt, Expression):
+        #         print(AstPrinter().print(stmt.expression))
 
-        self.interpreter.interpret(statements)
+
         if repl:
-            exprs = [x for x in statements if isinstance(x, Expression)]
-            if len(exprs) > 0:
-                print("\nEvaluates to:")
-            for s in exprs:
-                try:
-                    print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
-                except PlamRuntimeError as e:
-                    print("error")
+            for s in statements:
+                if isinstance(s, Expression):
+                    try:
+                        print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
+                    except PlamRuntimeError as e:
+                        print("error")
+                else:
+                    self.interpreter.interpret([s])
+        else:
+            self.interpreter.interpret(statements)
 
     def error(self, line: int, message: str):
         self.report(line, "", message)

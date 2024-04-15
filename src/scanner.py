@@ -2,6 +2,7 @@ from __future__ import annotations
 from ptoken import Token, TokenType
 from typing import Any
 
+
 class Scanner:
     source: str
     tokens: list[Token]
@@ -28,6 +29,8 @@ class Scanner:
         "true": TokenType.TRUE,
         "var": TokenType.VAR,
         "while": TokenType.WHILE,
+        "break": TokenType.BREAK,
+        "continue": TokenType.CONTINUE
     }
 
     def __init__(self, source: str, plam):
@@ -75,17 +78,27 @@ class Scanner:
             case ".":
                 self.addToken(TokenType.DOT)
             case "-":
-                self.addToken(TokenType.MINUS)
+                if self.match("="):
+                    self.addToken(TokenType.MINUSEQ)
+                elif self.match("-"):
+                    self.addToken(TokenType.MINUSMINUS)
+                else:
+                    self.addToken(TokenType.MINUS)
             case "+":
-                self.addToken(TokenType.PLUS)
+                if self.match("="):
+                    self.addToken(TokenType.PLUSEQ)
+                elif self.match("+"):
+                    self.addToken(TokenType.PLUSPLUS)
+                else:
+                    self.addToken(TokenType.PLUS)
             case ";":
                 self.addToken(TokenType.SEMICOLON)
-            # case ":":
-            #     self.addToken(TokenType.COLON)
-            # case "?":
-            #     self.addToken(TokenType.QMARK)
+            case ":":
+                self.addToken(TokenType.COLON)
+            case "?":
+                self.addToken(TokenType.QMARK)
             case "*":
-                self.addToken(TokenType.STAR)
+                self.addToken(TokenType.STAREQ if self.match("=") else TokenType.STAR)
 
             case "!":
                 self.addToken(TokenType.BANGEQ if self.match("=") else TokenType.BANG)
@@ -102,6 +115,8 @@ class Scanner:
                 if self.match("/"):
                     while self.peek() != "\n" and not self.isAtEnd():
                         self.advance()
+                elif self.match("="):
+                    self.addToken(TokenType.SLASHEQ)
                 else:
                     self.addToken(TokenType.SLASH)
 

@@ -2,7 +2,7 @@ import sys
 import os
 
 
-def defineAst(outdir: str, basename: str, types: list[str], additional = ""):
+def defineAst(outdir: str, basename: str, types: list[str], additional=""):
     path = os.path.join(outdir, basename.lower() + ".py")
     with open(path, "w+") as f:
         f.write(
@@ -37,7 +37,7 @@ def defineType(f, basename, classname, fields):
 class {classname}({basename}):
 """
     )
-    for field in map(str.strip, fields.split(",")):
+    for field in [x.strip() for x in fields.split(",") if len(x.strip()) > 0]:
         t = field.split(" ")[0].strip()
         n = field.split(" ")[1].strip()
         f.write(f"""    {n}: {t}\n""")
@@ -75,14 +75,34 @@ if __name__ == "__main__":
             "Literal    : object value",
             "Logical    : Expr left, Token operator, Expr right",
             "Unary      : Token operator, Expr right",
-            "Variable   : Token name"
+            "Variable   : Token name",
         ],
     )
     defineAst(
-        outdir, "Stmt", ["Expression : Expr expression",
-                         "If         : Expr cond, Stmt thenBranch, Optional[Stmt] elseBranch",
-                         "Print      : Expr expression",
-                         "Var        : Token name, Optional[Expr] initializer",
-                         "Block      : list[Stmt] statements"
-                         ], "from expr import Expr"
+        outdir,
+        "Stmt",
+        [
+            "Expression : Expr expression",
+            "If         : Expr cond, Stmt thenBranch, Optional[Stmt] elseBranch, ",
+            "Print      : Expr expression",
+            "Var        : Token name, Optional[Expr] initializer",
+            "While      : Expr cond, Stmt body",
+            "Block      : list[Stmt] statements",
+            "Break      : Token tok",
+            "Continue   : Token tok",
+        ],
+        "from expr import Expr",
     )
+
+# class While(Stmt):
+#     cond: Expr
+#     body: Stmt
+#     post: Optional[Expr]
+
+#     def __init__(self, cond: Expr, body: Stmt, post: Optional[Expr] = None):
+#           self.cond = cond
+#           self.body = body
+#           self.post = post
+
+#     def accept(self, visitor: Visitor[T]) -> T:
+#             return visitor.visitWhileStmt(self)
