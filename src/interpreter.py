@@ -1,15 +1,18 @@
-from expr import Binary, Expr, Grouping, Literal, Ternary, Unary, Visitor as EVisitor
+from expr import Binary, Expr, Grouping, Literal, Ternary, Unary, Variable, Assignment, Visitor as EVisitor
 from ptoken import TokenType, Token
-from stmt import Stmt, Expression, Print, Visitor as SVisitor
-
+from stmt import Stmt, Expression, Print, Var, Visitor as SVisitor
 class PlamRuntimeError(RuntimeError):
     token: Token
     def __init__(self, token: Token, message: str):
         super().__init__(message)
         self.token = token
 
+from environment import Environment
+
 class Interpreter(EVisitor[object], SVisitor[None]):
     plam: object
+    environment: Environment = Environment()
+
     def __init__(self, plam):
         self.plam = plam
 
@@ -60,6 +63,16 @@ class Interpreter(EVisitor[object], SVisitor[None]):
     def visitPrintStmt(self, stmt: Print) -> None:
         value: object = self.evaluate(stmt.expression)
         print(self.stringify(value))
+    
+    def visitVarStmt(self, stmt: Var) -> None:
+        value: object = None
+        if stmt.initializer != None:
+            value = self.evaluate(stmt.initializer)
+        
+        self.environment.define(stmt.name.lexeme, value)
+    
+    def visitVariableExpr(self, expr: Variable) -> object:
+        return self.environment.get(expr.name)
 
     def visitLiteralExpr(self, expr: Literal) -> object:
         return expr.value
@@ -86,6 +99,11 @@ class Interpreter(EVisitor[object], SVisitor[None]):
             return self.evaluate(expr.first)
         else:
             return self.evaluate(expr.second)
+        
+    def visitAssignmentExpr(self, expr: Assignment) -> object:
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
     
     def visitBinaryExpr(self, expr: Binary) -> object:
         left = self.evaluate(expr.left)

@@ -45,8 +45,8 @@ class TokenType(Enum):
     VAR = 37
     WHILE = 38
 
-    QMARK = 39
-    COLON = 40
+    # QMARK = 39
+    # COLON = 40
 
 
 class Token:

@@ -12,6 +12,14 @@ class Expr(ABC):
         pass
 
 @dataclass
+class Assignment(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitAssignmentExpr(self)
+
+@dataclass
 class Ternary(Expr):
     cond: Expr
     first: Expr
@@ -51,7 +59,17 @@ class Unary(Expr):
     def accept(self, visitor: Visitor[T]) -> T:
             return visitor.visitUnaryExpr(self)
 
+@dataclass
+class Variable(Expr):
+    name: Token
+
+    def accept(self, visitor: Visitor[T]) -> T:
+            return visitor.visitVariableExpr(self)
+
 class Visitor(ABC, Generic[T]):
+    def visitAssignmentExpr(self, expr: Assignment) -> T:
+        pass
+        
     def visitTernaryExpr(self, expr: Ternary) -> T:
         pass
         
@@ -65,5 +83,8 @@ class Visitor(ABC, Generic[T]):
         pass
         
     def visitUnaryExpr(self, expr: Unary) -> T:
+        pass
+        
+    def visitVariableExpr(self, expr: Variable) -> T:
         pass
         

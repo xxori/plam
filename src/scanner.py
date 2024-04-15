@@ -79,10 +79,10 @@ class Scanner:
                 self.addToken(TokenType.PLUS)
             case ";":
                 self.addToken(TokenType.SEMICOLON)
-            case ":":
-                self.addToken(TokenType.COLON)
-            case "?":
-                self.addToken(TokenType.QMARK)
+            # case ":":
+            #     self.addToken(TokenType.COLON)
+            # case "?":
+            #     self.addToken(TokenType.QMARK)
             case "*":
                 self.addToken(TokenType.STAR)
 
