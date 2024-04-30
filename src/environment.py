@@ -1,8 +1,8 @@
 from __future__ import annotations
-from interpreter import PlamRuntimeError
 from ptoken import Token
 from typing import Optional
 
+from exceptions import PlamRuntimeError
 UNINITIALIZED = object()
 class Environment:
     enclosing: Optional[Environment]

@@ -22,7 +22,6 @@ class Scanner:
         "if": TokenType.IF,
         "null": TokenType.NULL,
         "or": TokenType.OR,
-        "print": TokenType.PRINT,
         "return": TokenType.RETURN,
         "super": TokenType.SUPER,
         "this": TokenType.THIS,
@@ -30,7 +29,7 @@ class Scanner:
         "var": TokenType.VAR,
         "while": TokenType.WHILE,
         "break": TokenType.BREAK,
-        "continue": TokenType.CONTINUE
+        "continue": TokenType.CONTINUE,
     }
 
     def __init__(self, source: str, plam):

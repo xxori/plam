@@ -71,6 +71,7 @@ if __name__ == "__main__":
             "Assignment : Token name, Expr value",
             "Ternary    : Expr cond, Expr first, Expr second",
             "Binary     : Expr left, Token operator, Expr right",
+            "Call       : Expr callee, Token paren, list[Expr] arguments",
             "Grouping   : Expr expression",
             "Literal    : object value",
             "Logical    : Expr left, Token operator, Expr right",
@@ -83,8 +84,9 @@ if __name__ == "__main__":
         "Stmt",
         [
             "Expression : Expr expression",
+            "Function   : Token name, list[Token] params, list[Stmt] body",
             "If         : Expr cond, Stmt thenBranch, Optional[Stmt] elseBranch, ",
-            "Print      : Expr expression",
+            "Return     : Token keyword, Optional[Expr] value",
             "Var        : Token name, Optional[Expr] initializer",
             "While      : Expr cond, Stmt body",
             "Block      : list[Stmt] statements",
@@ -97,9 +99,9 @@ if __name__ == "__main__":
 # class While(Stmt):
 #     cond: Expr
 #     body: Stmt
-#     post: Optional[Expr]
+#     post: Optional[Stmt]
 
-#     def __init__(self, cond: Expr, body: Stmt, post: Optional[Expr] = None):
+#     def __init__(self, cond: Expr, body: Stmt, post: Optional[Stmt] = None):
 #           self.cond = cond
 #           self.body = body
 #           self.post = post

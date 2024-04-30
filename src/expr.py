@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 from dataclasses import dataclass
 from abc import ABC
@@ -8,8 +7,10 @@ from typing import TypeVar, Generic, Optional
 
 T = TypeVar("T")
 
+
 class Expr(ABC):
     def accept(self, visitor: Visitor[T]) -> T: ...
+
 
 @dataclass
 class Assignment(Expr):
@@ -17,7 +18,8 @@ class Assignment(Expr):
     value: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitAssignmentExpr(self)
+        return visitor.visitAssignmentExpr(self)
+
 
 @dataclass
 class Ternary(Expr):
@@ -26,7 +28,8 @@ class Ternary(Expr):
     second: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitTernaryExpr(self)
+        return visitor.visitTernaryExpr(self)
+
 
 @dataclass
 class Binary(Expr):
@@ -35,21 +38,34 @@ class Binary(Expr):
     right: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitBinaryExpr(self)
+        return visitor.visitBinaryExpr(self)
+
+
+@dataclass
+class Call(Expr):
+    callee: Expr
+    paren: Token
+    arguments: list[Expr]
+
+    def accept(self, visitor: Visitor[T]) -> T:
+        return visitor.visitCallExpr(self)
+
 
 @dataclass
 class Grouping(Expr):
     expression: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitGroupingExpr(self)
+        return visitor.visitGroupingExpr(self)
+
 
 @dataclass
 class Literal(Expr):
     value: object
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitLiteralExpr(self)
+        return visitor.visitLiteralExpr(self)
+
 
 @dataclass
 class Logical(Expr):
@@ -58,7 +74,8 @@ class Logical(Expr):
     right: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitLogicalExpr(self)
+        return visitor.visitLogicalExpr(self)
+
 
 @dataclass
 class Unary(Expr):
@@ -66,29 +83,32 @@ class Unary(Expr):
     right: Expr
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitUnaryExpr(self)
+        return visitor.visitUnaryExpr(self)
+
 
 @dataclass
 class Variable(Expr):
     name: Token
 
     def accept(self, visitor: Visitor[T]) -> T:
-            return visitor.visitVariableExpr(self)
+        return visitor.visitVariableExpr(self)
+
 
 class Visitor(ABC, Generic[T]):
     def visitAssignmentExpr(self, expr: Assignment) -> T: ...
-        
+
     def visitTernaryExpr(self, expr: Ternary) -> T: ...
-        
+
     def visitBinaryExpr(self, expr: Binary) -> T: ...
-        
+
+    def visitCallExpr(self, expr: Call) -> T: ...
+
     def visitGroupingExpr(self, expr: Grouping) -> T: ...
-        
+
     def visitLiteralExpr(self, expr: Literal) -> T: ...
-        
+
     def visitLogicalExpr(self, expr: Logical) -> T: ...
-        
+
     def visitUnaryExpr(self, expr: Unary) -> T: ...
-        
+
     def visitVariableExpr(self, expr: Variable) -> T: ...
-        

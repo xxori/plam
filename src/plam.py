@@ -8,6 +8,7 @@ from pparser import Parser
 from ast_printer import AstPrinter
 from interpreter import Interpreter, PlamRuntimeError
 
+
 class Plam:
     hadError = False
     hadRuntimeError = False
@@ -36,18 +37,22 @@ class Plam:
         parser = Parser(toks, self)
         statements: list[Stmt] = parser.parse()
 
-        if Plam.hadError: return
+        if Plam.hadError:
+            return
 
         # for stmt in statements:
         #     if isinstance(stmt, Expression):
         #         print(AstPrinter().print(stmt.expression))
 
-
         if repl:
             for s in statements:
                 if isinstance(s, Expression):
                     try:
-                        print(self.interpreter.stringify(self.interpreter.evaluate(s.expression)))
+                        print(
+                            self.interpreter.stringify(
+                                self.interpreter.evaluate(s.expression)
+                            )
+                        )
                     except PlamRuntimeError as e:
                         self.runtimeError(e)
                 else:
@@ -57,9 +62,9 @@ class Plam:
 
     def error(self, line: int, message: str):
         self.report(line, "", message)
-    
+
     def runtimeError(self, e: PlamRuntimeError):
-        print(f"{e}\n[line {e.token.line}]",file=sys.stderr)
+        print(f"{e}\n[line {e.token.line}]", file=sys.stderr)
         Plam.hadRuntimeError = True
 
     def tok_error(self, token: Token, message: str):
@@ -69,7 +74,9 @@ class Plam:
             self.report(token.line, " at '" + token.lexeme + "'", message)
 
     def report(self, line: int, where: str, message: str):
-        print("[line " + str(line) + "] Error" + where + ": " + message, file=sys.stderr)
+        print(
+            "[line " + str(line) + "] Error" + where + ": " + message, file=sys.stderr
+        )
         Plam.hadError = True
 
     def runFile(self, filename: str):

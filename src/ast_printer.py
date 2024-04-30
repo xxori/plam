@@ -1,4 +1,15 @@
-from expr import Assignment, Binary, Grouping, Literal, Logical, Ternary, Unary, Variable, Visitor, Expr
+from expr import (
+    Assignment,
+    Binary,
+    Grouping,
+    Literal,
+    Logical,
+    Ternary,
+    Unary,
+    Variable,
+    Visitor,
+    Expr,
+)
 
 
 class AstPrinter(Visitor[str]):
@@ -14,14 +25,14 @@ class AstPrinter(Visitor[str]):
         return "".join(strbuilder)
 
     def visitTernaryExpr(self, expr: Ternary) -> str:
-        return self.parenthesize(expr.cond.accept(self)+"?",expr.first, expr.second)
-    
+        return self.parenthesize(expr.cond.accept(self) + "?", expr.first, expr.second)
+
     def visitVariableExpr(self, expr: Variable) -> str:
         return expr.name.lexeme
-    
+
     def visitAssignmentExpr(self, expr: Assignment) -> str:
         return self.parenthesize("=", Literal(expr.name.lexeme), expr.value)
-    
+
     def visitLogicalExpr(self, expr: Logical) -> str:
         return self.parenthesize(expr.operator.lexeme, expr.left, expr.right)
 

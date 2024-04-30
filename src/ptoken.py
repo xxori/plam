@@ -37,7 +37,6 @@ class TokenType(Enum):
     IF = 29
     NULL = 30
     OR = 31
-    PRINT = 32
     RETURN = 33
     SUPER = 34
     THIS = 35
@@ -53,7 +52,7 @@ class TokenType(Enum):
 
     PLUSPLUS = 43
     MINUSMINUS = 44
-    PLUSEQ  = 45
+    PLUSEQ = 45
     MINUSEQ = 46
     STAREQ = 47
     SLASHEQ = 48

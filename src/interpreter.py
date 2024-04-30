@@ -8,36 +8,51 @@ from expr import (
     Variable,
     Assignment,
     Logical,
+    Call,
     Visitor as EVisitor,
 )
+from stmt import (
+    Stmt,
+    Expression,
+    While,
+    Break,
+    Continue,
+    Var,
+    Block,
+    If,
+    Function,
+    Return,
+    Visitor as SVisitor,
+)
+from pfunction import PFunction
 from ptoken import TokenType, Token
-from stmt import Stmt, Expression, While, Print, Break, Continue, Var, Block, If, Visitor as SVisitor
-from typing import cast, Any
-
-
-class PlamRuntimeError(RuntimeError):
-    token: Token
-
-    def __init__(self, token: Token, message: str):
-        super().__init__(message)
-        self.token = token
-
-
+from typing import cast, Any, TYPE_CHECKING
+from callable import Callable
+from exceptions import PlamRuntimeError, ReturnException
 from environment import Environment, UNINITIALIZED
+from pbuiltins import BUILTINS
 
 class BreakLoop(Exception):
     def __init__(self, tok: Token):
         self.token = tok
 
+
 class ContinueLoop(Exception):
     def __init__(self, tok: Token):
         self.token = tok
 
+
 class Interpreter(EVisitor[object], SVisitor[None]):
     plam: Any
-    environment: Environment = Environment()
+    globalenv: Environment
+    environment: Environment
 
     def __init__(self, plam):
+        self.globalenv = Environment()
+        self.environment = self.globalenv
+
+        for b in BUILTINS:
+            self.globalenv.define(b.name, b.fn)
         self.plam = plam
 
     def interpret(self, statements: list[Stmt]):
@@ -47,10 +62,13 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         except PlamRuntimeError as e:
             self.plam.runtimeError(e)
         except BreakLoop as e:
-            self.plam.runetimeError(PlamRuntimeError(e.token, "'break' used outside loop."))
+            self.plam.runetimeError(
+                PlamRuntimeError(e.token, "'break' used outside loop.")
+            )
         except ContinueLoop as e:
-            self.plam.runetimeError(PlamRuntimeError(e.token, "'continue' used outside loop."))
-        
+            self.plam.runetimeError(
+                PlamRuntimeError(e.token, "'continue' used outside loop.")
+            )
 
     def stringify(self, obj: object) -> str:
         if obj == None:
@@ -99,16 +117,23 @@ class Interpreter(EVisitor[object], SVisitor[None]):
 
     def visitExpressionStmt(self, stmt: Expression) -> None:
         self.evaluate(stmt.expression)
-    
+
+    def visitFunctionStmt(self, stmt: Function) -> None:
+        function = PFunction(stmt)
+        self.environment.define(stmt.name.lexeme, function)
+
     def visitBreakStmt(self, stmt: Break) -> None:
         raise BreakLoop(stmt.tok)
-    
+
     def visitContinueStmt(self, stmt: Continue) -> None:
         raise ContinueLoop(stmt.tok)
 
-    def visitPrintStmt(self, stmt: Print) -> None:
-        value: object = self.evaluate(stmt.expression)
-        print(self.stringify(value))
+    def visitReturnStmt(self, stmt: Return) -> None:
+        value: object = None
+        if stmt.value != None:
+            value = self.evaluate(stmt.value)
+
+        raise ReturnException(value)
 
     def visitWhileStmt(self, stmt: While) -> None:
         try:
@@ -122,7 +147,6 @@ class Interpreter(EVisitor[object], SVisitor[None]):
                         self.execute(stmt.post)
         except BreakLoop:
             pass
- 
 
     def visitVarStmt(self, stmt: Var) -> None:
         value = UNINITIALIZED
@@ -245,3 +269,17 @@ class Interpreter(EVisitor[object], SVisitor[None]):
                 return not self.isEqual(left, right)
             case TokenType.EQUALEQ:
                 return self.isEqual(left, right)
+
+    def visitCallExpr(self, expr: Call) -> object:
+        callee = self.evaluate(expr.callee)
+        args = [self.evaluate(arg) for arg in expr.arguments]
+
+        if not isinstance(callee, Callable):
+            raise RuntimeError(expr.paren, "Can only call functions and classes.")
+        function = cast(Callable, callee)
+        if len(args) != function.arity():
+            raise RuntimeError(
+                expr.paren,
+                f"Expected {function.arity()} arguments but got {len(args)}.",
+            )
+        return function.call(self, args)
