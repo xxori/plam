@@ -11,12 +11,14 @@ if TYPE_CHECKING:
 
 class PFunction(Callable):
     declaration: Function
+    closure: Environment
 
-    def __init__(self, declaration):
+    def __init__(self, declaration: Function, closure: Environment):
         self.declaration = declaration
+        self.closure = closure
 
     def call(self, interpreter: Interpreter, args: list[object]) -> object:
-        env = Environment(interpreter.globalenv)
+        env = Environment(self.closure)
         for param, arg in zip(self.declaration.params, args):
             env.define(param.lexeme, arg)
         try:

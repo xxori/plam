@@ -6,7 +6,8 @@ from ptoken import Token, TokenType
 from stmt import Stmt, Expression
 from pparser import Parser
 from ast_printer import AstPrinter
-from interpreter import Interpreter, PlamRuntimeError
+from interpreter import Interpreter
+from exceptions import PlamRuntimeError
 
 
 class Plam:

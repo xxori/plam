@@ -119,7 +119,7 @@ class Interpreter(EVisitor[object], SVisitor[None]):
         self.evaluate(stmt.expression)
 
     def visitFunctionStmt(self, stmt: Function) -> None:
-        function = PFunction(stmt)
+        function = PFunction(stmt, self.environment)
         self.environment.define(stmt.name.lexeme, function)
 
     def visitBreakStmt(self, stmt: Break) -> None:
